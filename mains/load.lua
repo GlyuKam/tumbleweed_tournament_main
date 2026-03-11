@@ -1,0 +1,2 @@
+PrefabFiles ={"gz_team_manager"}
+Assets ={Asset("ANIM", "anim/gz_team_num.zip"), Asset("IMAGE", "images/hud/sign_ready.tex"), Asset("ATLAS", "images/hud/sign_ready.xml"), Asset("IMAGE", "images/hud/sign_wait.tex"), Asset("ATLAS", "images/hud/sign_wait.xml"), Asset("IMAGE", "images/hud/sign_watch.tex"), Asset("ATLAS", "images/hud/sign_watch.xml"), Asset("ATLAS", "images/ctf_crafting_tabs.xml")}

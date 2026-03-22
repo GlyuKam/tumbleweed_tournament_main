@@ -33,11 +33,11 @@ modimport "mains/SHB.lua"
 modimport "mains/ChatInTeam.lua"
 modimport "mains/Status.lua"
 
-local function SelectTeam(player,team)
-    c_nextteam(player,team)
-end
+-- local function SelectTeam(player,team)
+--     c_nextteam(player,team)
+-- end
 
-AddModRPCHandler("TEAMS","SELECTTEAM",SelectTeam)
+-- AddModRPCHandler("TEAMS","SELECTTEAM",SelectTeam)
 
 if TUNING["GZ_RandomChar"] then
     modimport "mains/RandomChar.lua"
@@ -64,14 +64,14 @@ end
 
 modimport "mains/Client.lua"
 
-local TeamButtons = require "widgets/team_selector"
+-- local TeamButtons = require "widgets/team_selector"
 
-AddClassPostConstruct("widgets/controls", function(self)
-    if TUNING["GZ_ON_GOING"] == true then return end
-    self.TeamButtons = self.inv:AddChild(TeamButtons(self.owner))
-    self.TeamButtons:SetPosition(0, 300)
-    self.TeamButtons:MoveToBack()
-end)
+-- AddClassPostConstruct("widgets/controls", function(self)
+--     if TUNING["GZ_ON_GOING"] == true then return end
+--     self.TeamButtons = self.inv:AddChild(TeamButtons(self.owner))
+--     self.TeamButtons:SetPosition(0, 300)
+--     self.TeamButtons:MoveToBack()
+-- end)
 
 if not TheNet:GetIsServerAdmin() then
     return

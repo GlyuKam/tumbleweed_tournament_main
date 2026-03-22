@@ -1,10 +1,10 @@
-local l1ll11ll1l1l11ll1ll1 = require "util/fgc_upvaluehelper"
+local upvaluehacker = require "util/fgc_upvaluehelper"
 
-local l1ll1l1ll1l1l1l1ll1l = require "List/list_game_modes"
+local gamemodes = require "List/list_game_modes"
 
-local ll1ll1l11ll1ll11l1l1 = l1ll1l1ll1l1l1l1ll1l["special_modes"]
+local special_gamemodes = gamemodes["special_modes"]
 
-local ll1l1l1l11l1ll1l11l1 = l1ll1l1ll1l1l1l1ll1l["game_modes"]
+local _gamemodes = gamemodes["game_modes"]
 
 local function GiveLoot(player, loot)
     if loot ~= nil then
@@ -27,91 +27,94 @@ local function GiveLoot(player, loot)
 
 end
 
-local ll1l1ll11ll1ll1l1l1l ={"boat_rectangle_item", "boat_raft_item", "boat_caravel_item", "boat_pirate_item", "boat_moon_item", "boat_grass_item", "boat_item", "boat_ancient_item", "dragonboat_kit"}
+local boats ={"boat_rectangle_item", "boat_raft_item", "boat_caravel_item", "boat_pirate_item", "boat_moon_item", "boat_grass_item", "boat_item", "boat_ancient_item", "dragonboat_kit"}
 
-local l11ll1ll11ll1l1ll1ll
+local _boats
 
-local l1ll1l1l1ll1l1l1ll1l ={"oar_driftwood", "malbatross_beak"}
+local oars ={"oar_driftwood", "malbatross_beak"}
 
-local l1ll11l1l1l11l1ll1ll ={"boat_bumper_kelp_kit", "boat_bumper_shell_kit", "boat_bumper_yotd_kit"}
+local bumpers ={"boat_bumper_kelp_kit", "boat_bumper_shell_kit", "boat_bumper_yotd_kit"}
 
-local l1l1l11l1l11ll1ll11l ={"redgem", "orangegem", "yellowgem", "greengem", "bluegem", "purplegem"}
+local gems ={"redgem", "orangegem", "yellowgem", "greengem", "bluegem", "purplegem"}
 
 local function ll1ll11l1ll1ll11l11l()
-    if l11ll1ll11ll1l1ll1ll == nil then
-        l11ll1ll11ll1l1ll1ll ={}
-        for l1ll1l11l1l11l1l1l1l, l11ll11l11ll1l11l1ll in ipairs(ll1l1ll11ll1ll1l1l1l)
+    if _boats == nil then
+        _boats ={}
+        for _, boat in ipairs(boats)
         do
-            if GLOBAL["Prefabs"][l11ll11l11ll1l11l1ll] ~= nil then
-                table["insert"](l11ll1ll11ll1l1ll1ll, l11ll11l11ll1l11l1ll)
+            if GLOBAL["Prefabs"][boat] ~= nil then
+                table["insert"](_boats, boat)
             end
         end
     end
     if TUNING["GZ_COUNT_SUOQUAN"] == TUNING["gz_SpecialModeStartTime"] and TUNING["gz_multiplayer_point"] then
-        local ll11l1ll1l1l1ll11l11 = SpawnPrefab "crabking"
-        ll11l1ll1l1l1ll11l11["Transform"]:SetPosition(TUNING["gz_multiplayer_point"]:Get())
-        local l11ll1ll1l11l1l11ll1 = ll11l1ll1l1l1ll11l11["components"]["trader"] and ll11l1ll1l1l1ll11l11["components"]["trader"]["onaccept"]
-        if l11ll1ll1l11l1l11ll1 then
-            for l1ll11ll1ll1l1l1l1l1 = 1, 9, 1
+        local crab = SpawnPrefab "crabking"
+        crab["Transform"]:SetPosition(TUNING["gz_multiplayer_point"]:Get())
+        local trader = crab["components"]["trader"] and crab["components"]["trader"]["onaccept"]
+        if trader then
+            for i = 1, 9, 1
             do
-                if # ll11l1ll1l1l1ll11l11["socketed"] >= 9 then
+                if # crab["socketed"] >= 9 then
                     break
                 end
-                local l11ll11ll11l11ll1ll1 = l1l1l11l1l11ll1ll11l[math["random"](# l1l1l11l1l11ll1ll11l)]
+                local gem = gems[math["random"](# gems)]
                 if math["random"]() < 0.05 then
-                    l11ll11ll11l11ll1ll1 = "opalpreciousgem"
+                    gem = "opalpreciousgem"
                 end
-                if # ll11l1ll1l1l1ll11l11["socketed"] == 8 and math["random"]() < 0.01 then
-                    l11ll11ll11l11ll1ll1 = "hermit_pearl"
+                if # crab["socketed"] == 8 and math["random"]() < 0.01 then
+                    gem = "hermit_pearl"
                 end
-                l11ll1ll1l11l1l11ll1(ll11l1ll1l1l1ll11l11, nil, SpawnPrefab(l11ll11ll11l11ll1ll1))
+                trader(crab, nil, SpawnPrefab(gem))
             end
         end
-        local l1ll11l1ll1l1l1ll1l1 = l1ll11ll1l1l11ll1ll1["GetEventHandle"](ll11l1ll1l1l1ll11l11, "entitysleep", "prefabs/crabking")
-        if l1ll11l1ll1l1l1ll1l1 then
-            ll11l1ll1l1l1ll11l11:RemoveEventCallback("entitysleep", l1ll11l1ll1l1l1ll1l1)
+        local entitysleep = upvaluehacker["GetEventHandle"](crab, "entitysleep", "prefabs/crabking")
+        if entitysleep then
+            crab:RemoveEventCallback("entitysleep", entitysleep)
         end
-        ll11l1ll1l1l1ll11l11:ListenForEvent("death", function(ll11l1ll1l11l11ll1ll, l1ll1l11l11ll11ll1ll)
-            local ll1l1ll1l1l1l1ll1l1l = l1ll1l11l11ll11ll1ll and l1ll1l11l11ll11ll1ll["afflicter"] if not ll1l1ll1l1l1l1ll1l1l then
+        crab:ListenForEvent("death", function(inst, killer)
+            local p_killer = killer and killer["afflicter"] 
+            if not p_killer then
                 return
             end
-            local l11ll1l1ll1ll1ll1ll1 if ll1l1ll1l1l1l1ll1l1l:HasTag "player" then
-                l11ll1l1ll1ll1ll1ll1 = ll1l1ll1l1l1l1ll1l1l
-            elseif ll1l1ll1l1l1l1ll1l1l["components"]["follower"] then
-                local ll11l1ll1ll11l11l1ll = ll1l1ll1l1l1l1ll1l1l["components"]["follower"]["leader"] if ll11l1ll1ll11l11l1ll and ll11l1ll1ll11l11l1ll:HasTag "player" then
-                    l11ll1l1ll1ll1ll1ll1 = ll11l1ll1ll11l11l1ll
+            local player 
+            if p_killer:HasTag "player" then
+                player = p_killer
+            elseif p_killer["components"]["follower"] then
+                local follower = p_killer["components"]["follower"]["leader"] 
+                if follower and follower:HasTag "player" then
+                    player = follower
                 end
             end
-            local l1l1l1ll1ll1ll1l11l1 = l11ll1l1ll1ll1ll1ll1 and l11ll1l1ll1ll1ll1ll1["team_manager"] if not (l1l1l1ll1ll1ll1l11l1 and l1l1l1ll1ll1ll1l11l1:IsValid()) then
+            local team_manager = player and player["team_manager"] 
+            if not (team_manager and team_manager:IsValid()) then
                 return
             end
-            for ll11l1l1ll11ll1l1ll1, l11l1l1l1ll1ll11l1ll in pairs(l1l1l1ll1ll1ll1l11l1["players"]) do
-                if l11l1l1l1ll1ll11l1ll and l11l1l1l1ll1ll11l1ll:IsValid() and not l11l1l1l1ll1ll11l1ll:HasTag "playerghost" and l11l1l1l1ll1ll11l1ll["components"]["gz_player"]["survive_p"] then
-                    GiveLoot(l11l1l1l1ll1ll11l1ll,{{prefab = "ruins_bat", num = 1},{prefab = "ruinshat", num = 1},{prefab = "armorruins", num = 1}})
+            for _, _player in pairs(team_manager["players"]) do
+                if _player and _player:IsValid() and not _player:HasTag "playerghost" and _player["components"]["gz_player"]["survive_p"] then
+                    GiveLoot(_player,{{prefab = "ruins_bat", num = 1},{prefab = "ruinshat", num = 1},{prefab = "armorruins", num = 1}})
                 end
             end
         end
         )
     end
-    for ll11l1l11l1ll11l1l1l, l1ll1l11ll1l11l1l1ll in ipairs(AllPlayers)
-    do
-        if not l1ll1l11ll1l11l1l1ll:HasTag "playerghost" and not l1ll1l11ll1l11l1l1ll["components"]["gz_player"]:IsWatch() and l1ll1l11ll1l11l1l1ll["components"]["gz_player"]["survive_p"] then
+    for _, _player in ipairs(AllPlayers) do
+        if not _player:HasTag "playerghost" and not _player["components"]["gz_player"]:IsWatch() and _player["components"]["gz_player"]["survive_p"] then
             if TUNING["GZ_COUNT_SUOQUAN"] == TUNING["gz_SpecialModeStartTime"] then
-                GiveLoot(l1ll1l11ll1l11l1l1ll,{{prefab = l11ll1ll11ll1l1ll1ll[math["random"](# l11ll1ll11ll1l1ll1ll)], num = 1},{prefab = "boatpatch", stack = 3},{prefab = l1ll1l1l1ll1l1l1ll1l[math["random"](# l1ll1l1l1ll1l1l1ll1l)], num = 1},{prefab = "steeringwheel_item", num = 1},{prefab = l1ll11l1l1l11l1ll1ll[math["random"](# l1ll11l1l1l11l1ll1ll)], stack = 3}})
-                GiveLoot(l1ll1l11ll1l11l1l1ll,{{prefab = "boat_cannon_kit", num = 2},{prefab = "cannonball_rock_item", stack = 10},{prefab = "waterballoon", stack = 1}})
+                GiveLoot(_player,{{prefab = _boats[math["random"](# _boats)], num = 1},{prefab = "boatpatch", stack = 3},{prefab = oars[math["random"](# oars)], num = 1},{prefab = "steeringwheel_item", num = 1},{prefab = bumpers[math["random"](# bumpers)], stack = 3}})
+                GiveLoot(_player,{{prefab = "boat_cannon_kit", num = 2},{prefab = "cannonball_rock_item", stack = 10},{prefab = "waterballoon", stack = 1}})
             else
-                GiveLoot(l1ll1l11ll1l11l1l1ll,{{prefab = "boat_cannon_kit", num = 1},{prefab = "cannonball_rock_item", stack = 3}})
-                local ll11l1ll11l1l11l1l11 ={{prefab = "boatpatch", stack = 2},{prefab = l1ll11l1l1l11l1ll1ll[math["random"](# l1ll11l1l1l11l1ll1ll)], stack = 2}}
+                GiveLoot(_player,{{prefab = "boat_cannon_kit", num = 1},{prefab = "cannonball_rock_item", stack = 3}})
+                local boatshit ={{prefab = "boatpatch", stack = 2},{prefab = bumpers[math["random"](# bumpers)], stack = 2}}
                 if math["random"]() < 0.3 then
-                    table["insert"](ll11l1ll11l1l11l1l11,{prefab = l11ll1ll11ll1l1ll1ll[math["random"](# l11ll1ll11ll1l1ll1ll)], num = 1})
+                    table["insert"](boatshit,{prefab = _boats[math["random"](# _boats)], num = 1})
                 end
                 if math["random"]() < 0.3 then
-                    table["insert"](ll11l1ll11l1l11l1l11,{prefab = l1ll1l1l1ll1l1l1ll1l[math["random"](# l1ll1l1l1ll1l1l1ll1l)], num = 1})
+                    table["insert"](boatshit,{prefab = oars[math["random"](# oars)], num = 1})
                 end
                 if math["random"]() < 0.3 then
-                    table["insert"](ll11l1ll11l1l11l1l11,{prefab = "steeringwheel_item", num = 1})
+                    table["insert"](boatshit,{prefab = "steeringwheel_item", num = 1})
                 end
-                GiveLoot(l1ll1l11ll1l11l1l1ll, ll11l1ll11l1l11l1l11)
+                GiveLoot(_player, boatshit)
             end
         end
     end
@@ -569,14 +572,14 @@ end
 function gz_GameModeRule()
     if TUNING["gz_GameMode"] == "Rondom" or (TUNING["gz_GameMode"] == "Land" and TUNING["gz_Site"] ~= 8) then
         if TUNING["gz_Site"] ~= 8 then
-            for l11l11ll1ll1l11ll1ll, l1l1l1l1l1l1l1l1ll11 in ipairs(ll1ll1l11ll1ll11l1l1)
+            for l11l11ll1ll1l11ll1ll, l1l1l1l1l1l1l1l1ll11 in ipairs(special_gamemodes)
             do
                 if l1l1l1l1l1l1l1l1ll11["data"] == "Land" then
-                    table["remove"](ll1ll1l11ll1ll11l1l1, l11l11ll1ll1l11ll1ll)
+                    table["remove"](special_gamemodes, l11l11ll1ll1l11ll1ll)
                 end
             end
         end
-        local l11ll11l11ll1l1l1l1l = ll1ll1l11ll1ll11l1l1[math["random"](# ll1ll1l11ll1ll11l1l1)]
+        local l11ll11l11ll1l1l1l1l = special_gamemodes[math["random"](# special_gamemodes)]
         TUNING["gz_GameMode"] = l11ll11l11ll1l1l1l1l["data"]
         TheNet:Announce(string["format"](STRINGS["DC_FGC"]["SUIJIMOSHI"], l11ll11l11ll1l1l1l1l["description"]))
         if TUNING["gz_GameMode"] == "Land" or TUNING["gz_GameMode"] == "Arena" then
@@ -584,7 +587,7 @@ function gz_GameModeRule()
         end
     end
     if TUNING["GZ_COUNT_SUOQUAN"] == TUNING["gz_SpecialModeStartTime"] then
-        TheNet:Announce(ll1l1l1l11l1ll1l11l1[TUNING["gz_GameMode"]]["announce"])
+        TheNet:Announce(_gamemodes[TUNING["gz_GameMode"]]["announce"])
     end
     if TUNING["gz_GameMode"] == "Classic" then
     elseif TUNING["gz_GameMode"] == "Naval" then
@@ -638,7 +641,7 @@ function gz_SetGameMode(ll1ll1l1ll1l11ll11l1)
         gz_SetGameMode(math["random"](6))
         return
     end
-    TheNet:Announce(string["format"](STRINGS["DC_FGC"]["MOSHIYIXIUGAI"], ll1l1l1l11l1ll1l11l1[TUNING["gz_GameMode"]]["description"]))
+    TheNet:Announce(string["format"](STRINGS["DC_FGC"]["MOSHIYIXIUGAI"], _gamemodes[TUNING["gz_GameMode"]]["description"]))
 
 end
 

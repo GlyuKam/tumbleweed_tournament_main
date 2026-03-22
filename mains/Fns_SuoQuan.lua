@@ -185,37 +185,27 @@ end
 
 GLOBAL["DC_Clean"] = DC_Clean
 
-local ll1ll1l11l1ll1l1l11l = 8
+local radius = 8
 
-local ll1ll11l11ll1ll1ll1l =(string.sub("l11l11l1l1l1l1ll11ll", 7, 13) == "1111l1l")
-
-local l1l11l11l1l1l1ll1ll1 =(424 * 405 * 230 ~= 39495605)
-
-local ll1ll11l1ll1ll1l11ll = function(ll11l11ll11l11ll1l11)
-    local l11l1l11ll1l1l1l11ll, l1ll1l1ll1l1ll1l11l1, l1ll11l1l11l1l11l11l = ll11l11ll11l11ll1l11:Get()
-    local l1ll11l11l1l11ll1ll1 = TheWorld["Map"]:GetTileAtPoint(l11l1l11ll1l1l1l11ll, l1ll1l1ll1l1ll1l11l1, l1ll11l1l11l1l11l11l)
-    return l1ll11l11l1l11ll1ll1 ~= WORLD_TILES["MONKEY_DOCK"]
+local NoDocks = function(pos)
+    local x, y, z = pos:Get()
+    local new_tile = TheWorld["Map"]:GetTileAtPoint(x, y, z)
+    return new_tile ~= WORLD_TILES["MONKEY_DOCK"]
 
 end
 
-local l1l1l11ll1l1l1ll1l11 =(256+457-423+187 == 482)
-
-local ll11l1ll11l11ll1l11l =(string.sub("l1ll1ll1l11l1l1ll11l", 8, 12) == "11l11")
-
-local function l11ll1l11l11l1l1ll11()
-    for ll1l1l11l11l1l11ll11, l11l11l1l11l11l11l11 in pairs(TheWorld["gz_team_managers"])
-    do
-        if l11l11l1l11l11l11l11["survive_m"] then
-            local ll11ll11ll1l1l1l11l1, l1l1l1l11ll1l11l11ll, ll11l1l1ll11l11l11ll = l11l11l1l11l11l11l11["Transform"]:GetWorldPosition()
-            local ll11l11l1l1ll1ll1l11 = Point(ll11ll11ll1l1l1l11l1, l1l1l1l11ll1l11l11ll, ll11l1l1ll11l11l11ll)
-            for ll1l1l11l11l1l1l1ll1 = 0, 16, 2
-            do
-                local l1l1ll1l11ll11ll1l11 = math["random"]() * 2 * PI
-                local l1ll11l11ll1l1l11l11 = ll1l1l11l11l1l1l1ll1
-                local ll1l11ll1l11ll11ll1l = FindWalkableOffset(ll11l11l1l1ll1ll1l11, l1l1ll1l11ll11ll1l11, l1ll11l11ll1l1l11l11, ll1ll1l11l1ll1l1l11l, ll1ll11l11ll1ll1ll1l, l1l11l11l1l1l1ll1ll1, ll1ll11l1ll1ll1l11ll, l1l1l11ll1l1l1ll1l11, ll11l1ll11l11ll1l11l)
-                if ll1l11ll1l11ll11ll1l then
-                    local l1ll1l1ll1l1l1ll1ll1, l11ll1l1ll1l1l11l1l1, l1l1ll11l1ll11l1l11l = TheWorld["Map"]:GetTileCenterPoint(ll11ll11ll1l1l1l11l1 + ll1l11ll1l11ll11ll1l["x"], l1l1l1l11ll1l11l11ll + ll1l11ll1l11ll11ll1l["y"], ll11l1l1ll11l11l11ll + ll1l11ll1l11ll11ll1l["z"])
-                    l11l11l1l11l11l11l11["Transform"]:SetPosition(l1ll1l1ll1l1l1ll1ll1, l11ll1l1ll1l1l11l1l1, l1l1ll11l1ll11l1l11l)
+local function MoveTileManager()
+    for _, team_manager in pairs(TheWorld["gz_team_managers"]) do
+        if team_manager["survive_m"] then
+            local _x, _y, _z = team_manager["Transform"]:GetWorldPosition()
+            local _point = Point(_x, _y, _z)
+            for i = 0, 16, 2 do
+                local angle = math["random"]() * 2 * PI
+                local iterasiya = i
+                local offset = FindWalkableOffset(_point, angle, iterasiya, radius, false, true, NoDocks, false, false)
+                if offset then
+                    local x, y, z = TheWorld["Map"]:GetTileCenterPoint(_x + offset["x"], _y + offset["y"], _z + offset["z"])
+                    team_manager["Transform"]:SetPosition(x, y, z)
                     break
                 end
             end
@@ -269,7 +259,12 @@ local function watchworldstatement(world)
             local ll1l1l1l1l11l1l11ll1, ll1ll1l1ll11l1l11l11 = TheWorld["Map"]:GetTileCoordsAtPoint(ll11ll1ll1l1l11l1l11, ll11l1l1l1ll1l1l11ll, ll1l11l1l1ll11l1l11l) 
             dock_manager:DamageDockAtTile(ll1l1l1l1l11l1l11ll1, ll1ll1l1ll11l1l11l11, TUNING["MONKEYISLANDDOCK_HEALTH"])
         end
-        l1l1l1l1l1l1l1ll1l11 = nil l1l1l1l1l1l1l1ll1l11 ={} Sleep(5) ll1l11l1ll1ll1l1l11l() gz_MarkShrink() l11ll1l11l11l1l1ll11()
+        l1l1l1l1l1l1l1ll1l11 = nil 
+        l1l1l1l1l1l1l1ll1l11 ={} 
+        Sleep(5) 
+        ll1l11l1ll1ll1l1l11l() 
+        gz_MarkShrink() 
+        MoveTileManager()
     end
     )
     world:DoTaskInTime(10, DC_Clean)

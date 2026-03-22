@@ -26,8 +26,7 @@ local function l1ll11l1l11l1l1ll11l(l1ll1ll1ll1l11l11l11)
     end
     if AllPlayers ~= nil and # AllPlayers > 0 then
         local ll1ll1l1l11l11ll11ll ={}
-        for l11ll11ll1l1ll1ll1ll, ll11l1ll1ll11ll1l1l1 in ipairs(AllPlayers)
-        do
+        for l11ll11ll1l1ll1ll1ll, ll11l1ll1ll11ll1l1l1 in ipairs(AllPlayers) do
             if l11l1l11l11l1ll11l11(ll11l1ll1ll11ll1l1l1) then
                 table["insert"](ll1ll1l1l11l11ll11ll, ll11l1ll1ll11ll1l1l1)
             end
@@ -99,10 +98,8 @@ local function l1l11l1l11l1l11l1l1l(ll1l1ll11l1ll1l1l1l1)
 end
 
 AddPrefabPostInit("world", function(l11l1ll1l11l1ll11ll1)
-    l11l1ll1l11l1ll11ll1:WatchWorldState("startnight", l1ll11l1l11l1l1ll11l) l11l1ll1l11l1ll11ll1:WatchWorldState("startday", function()
+    l11l1ll1l11l1ll11ll1:WatchWorldState("startnight", l1ll11l1l11l1l1ll11l) 
+    l11l1ll1l11l1ll11ll1:WatchWorldState("startday", function()
         l1l11l1l11l1l11l1l1l(l11l1ll1l11l1ll11ll1["eyeofterror"])
-    end
-    )
-
-end
-)
+    end)
+end)

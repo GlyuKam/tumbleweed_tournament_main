@@ -1,91 +1,101 @@
-local ll1l11l1ll1l1l11ll1l = require "List/list_states"
+local list_states = require "List/list_states"
 
-local l1ll1l1l1ll1ll1l1ll1 = ll1l11l1ll1l1l11ll1l["States"]
+local states = list_states["States"]
 
-local function l11ll11ll1l1ll1ll1ll(self, l11ll1ll1ll11l11l11l)
+local function set_state_num(self, _state_num)
     if self["inst"]["_state_num"] ~= nil then
-        self["inst"]["_state_num"]:set(l11ll1ll1ll11l11l11l)
+        self["inst"]["_state_num"]:set(_state_num)
     end
-    TheWorld["net"]["components"]["dc_fgc_net"]:SetPlayerData(self["inst"]["userid"], "state", l11ll1ll1ll11l11l11l)
+    TheWorld["net"]["components"]["dc_fgc_net"]:SetPlayerData(self["inst"]["userid"], "state", _state_num)
 
 end
 
-local function ll11l1ll1ll11ll1l1l1(self, ll1ll1l1l1l1l1ll11l1)
+local function set_can_vote(self, _can_vote)
     if self["inst"]["_can_vote"] ~= nil then
-        self["inst"]["_can_vote"]:set(ll1ll1l1l1l1l1ll11l1)
+        self["inst"]["_can_vote"]:set(_can_vote)
     end
 
 end
 
-local function l11ll11l11l11l1ll11l(self, l1l1l11ll1l11l11ll11)
+local function set_p_teamnum(self, _p_team_num)
     if self["inst"]["_p_team_num"] ~= nil then
-        self["inst"]["_p_team_num"]:set(l1l1l11ll1l11l11ll11)
+        self["inst"]["_p_team_num"]:set(_p_team_num)
     end
-    TheWorld["net"]["components"]["dc_fgc_net"]:SetPlayerData(self["inst"]["userid"], "team", l1l1l11ll1l11l11ll11)
+    TheWorld["net"]["components"]["dc_fgc_net"]:SetPlayerData(self["inst"]["userid"], "team", _p_team_num)
 
 end
 
-local function l11l11l1ll1l1l1l1l1l(self, l11l1ll1l11l1ll11ll1)
+local function set_killnum(self, _kill_num)
     if self["inst"]["_kill_num"] ~= nil then
-        self["inst"]["_kill_num"]:set(l11l1ll1l11l1ll11ll1)
+        self["inst"]["_kill_num"]:set(_kill_num)
     end
-    TheWorld["net"]["components"]["dc_fgc_net"]:SetPlayerData(self["inst"]["userid"], "kill", l11l1ll1l11l1ll11ll1)
+    TheWorld["net"]["components"]["dc_fgc_net"]:SetPlayerData(self["inst"]["userid"], "kill", _kill_num)
 
 end
 
-local function l1l1l1l1ll1l11l11l11(self, l1l1l1l11l1l1l1ll1ll)
+local function set_deathnum(self, _death_num)
     if self["inst"]["_death_num"] ~= nil then
-        self["inst"]["_death_num"]:set(l1l1l1l11l1l1l1ll1ll)
+        self["inst"]["_death_num"]:set(_death_num)
     end
-    TheWorld["net"]["components"]["dc_fgc_net"]:SetPlayerData(self["inst"]["userid"], "death", l1l1l1l11l1l1l1ll1ll)
+    TheWorld["net"]["components"]["dc_fgc_net"]:SetPlayerData(self["inst"]["userid"], "death", _death_num)
 
 end
 
-local function ll1l1l1l1ll1ll1ll1ll(l1l1l1ll11ll1l1ll1l1)
-    local l11ll1ll11l11l11l11l =(string.sub("ll1ll1ll1ll1l1ll1ll1", 9, 12) ~= "ll1l")
-    for ll1ll1l11ll1l1l1ll11, ll1l1l1ll11l1ll1l1ll in pairs(l1l1l1ll11ll1l1ll1l1["players"])
-    do
-        if ll1l1l1ll11l1ll1l1ll and ll1l1l1ll11l1ll1l1ll:IsValid() and not ll1l1l1ll11l1ll1l1ll:HasTag "playerghost" then
-            l11ll1ll11l11l11l11l =(string.sub("ll1ll11l1ll1ll1l11ll", 8, 12) ~= "l1ll1")
+local function DestroyTeamInTime(team_manager)
+    local should_kill =true
+    for _, player in pairs(team_manager["players"]) do
+        if player and player:IsValid() and not player:HasTag "playerghost" then
+            should_kill = false
             break
         end
     end
-    if l11ll1ll11l11l11l11l and not l1l1l1ll11ll1l1ll1l1["out_task"] then
-        l1l1l1ll11ll1l1ll1l1["out_task"] = l1l1l1ll11ll1l1ll1l1:DoTaskInTime(TUNING["GZ_GHOST_TIME_MAX"], function()
-            l1l1l1ll11ll1l1ll1l1:TeamOut "鬼魂超时"
+    if should_kill and not team_manager["out_task"] then
+        team_manager["out_task"] = team_manager:DoTaskInTime(TUNING["GZ_GHOST_TIME_MAX"], function()
+            team_manager:TeamOut "шкебоб"
         end
         )
     end
 
 end
 
-local function l1ll11ll1ll1l1ll1l11(l11ll1l1l1l1l1ll1l11)
-    local l11l1l1l11l11l11l1l1 =(289 * 87-499 == 24644)
-    for l11l1l1ll1l1l11l1ll1, ll11l1l1ll11l1l11l11 in pairs(l11ll1l1l1l1l1ll1l11["players"])
+local function kill_team(team_manager)
+    local should_kill =true
+    for _, player in pairs(team_manager["players"])
     do
-        if ll11l1l1ll11l1l11l11 and ll11l1l1ll11l1l11l11:IsValid() and ll11l1l1ll11l1l11l11["components"]["gz_player"]["survive_p"] then
-            l11l1l1l11l11l11l1l1 =(166+349+414 * 122 == 51032)
+        if player and player:IsValid() and player["components"]["gz_player"]["survive_p"] then
+            should_kill =false
             break
         end
     end
-    if l11l1l1l11l11l11l1l1 then
-        l11ll1l1l1l1l1ll1l11:Result()
+    if should_kill then
+        team_manager:Result()
     else
-        ll1l1l1l1ll1ll1ll1ll(l11ll1l1l1l1l1ll1l11)
+        DestroyTeamInTime(team_manager)
     end
 
 end
 
-local l1ll1l1ll1ll1l1ll1ll = Class(function(self, l1ll1ll1l1ll1l1ll1l1)
-    self["inst"] = l1ll1ll1l1ll1l1ll1l1 self["state_num"] = 1 self["can_vote"] =(string.sub("ll11l1l1ll1ll11ll11l", 9, 11) ~= "l11") self["p_team_num"] = 0 self["kill_num"] = 0 self["death_num"] = 0 self["survive_p"] = nil self["dc_signal"] = nil self["dc_afk"] = 0 self["inst"]:DoTaskInTime(0, function()
+local gz_player = Class(function(self, inst)
+    self["inst"] = inst 
+    self["state_num"] = 1 
+    self["can_vote"] =true
+    self["p_team_num"] = 0 
+    self["kill_num"] = 0 
+    self["death_num"] = 0 
+    self["survive_p"] = nil 
+    self["dc_signal"] = nil 
+    self["dc_afk"] = 0 
+    self["inst"]:DoTaskInTime(0, function()
         self:InitVote() self:InitReconnect() self:InitGod()
     end
     ) self["inst"]:ListenForEvent("respawnfromghost", function()
         if self["inst"]:HasTag "gz_out_game" then
             self["inst"]["components"]["health"]:SetVal(0) return
         end
-        local l1l1ll11l1ll1ll11l11 = self["inst"]["team_manager"] if l1l1ll11l1ll1ll11l11 and l1l1ll11l1ll1ll11l11["out_task"] then
-            l1l1ll11l1ll1ll11l11["out_task"]:Cancel() l1l1ll11l1ll1ll11l11["out_task"] = nil
+        local team_manager = self["inst"]["team_manager"] 
+        if team_manager and team_manager["out_task"] then
+            team_manager["out_task"]:Cancel() 
+            team_manager["out_task"] = nil
         end
     end
     ) self["inst"]:ListenForEvent("ms_becameghost", function()
@@ -95,10 +105,11 @@ local l1ll1l1ll1ll1l1ll1ll = Class(function(self, l1ll1ll1l1ll1l1ll1l1)
         if self["inst"]:HasTag "gz_out_game" then
             return
         end
-        local ll1ll11l11ll1ll1l1ll = self["inst"]["team_manager"] if not ll1ll11l11ll1ll1l1ll then
+        local team_manager = self["inst"]["team_manager"] 
+        if not team_manager then
             return
         end
-        ll1l1l1l1ll1ll1ll1ll(ll1ll11l11ll1ll1l1ll)
+        DestroyTeamInTime(team_manager)
     end
     ) self["inst"]:ListenForEvent("onremove", function()
         if not TUNING["GZ_ON_GOING"] then
@@ -107,72 +118,80 @@ local l1ll1l1ll1ll1l1ll1ll = Class(function(self, l1ll1ll1l1ll1l1ll1l1)
         if self["inst"]:HasTag "gz_out_game" then
             return
         end
-        local ll1l11l1ll11l11ll11l = self["inst"]["team_manager"] if not ll1l11l1ll11l11ll11l then
+        local team_manager = self["inst"]["team_manager"] 
+        if not team_manager then
             return
         end
-        ll1l11l1ll11l11ll11l["players"][self["inst"]["GUID"]] = nil if self["survive_p"] ==(488+489+72 * 105 ~= 8545) then
-            self["dc_afk"] = self["dc_afk"] + 1 local l11l1l11ll1l11ll11l1 = self["inst"]["userid"] if not l11l1l11ll1l11ll11l1 then
+        team_manager["players"][self["inst"]["GUID"]] = nil 
+        if self["survive_p"] ==true then
+            self["dc_afk"] = self["dc_afk"] + 1 
+            local userid = self["inst"]["userid"] 
+            if not userid then
                 return
             end
-            TheWorld["gz_afk_task"][l11l1l11ll1l11ll11l1] = TheWorld:DoTaskInTime(5 * 60, function()
-                TheWorld["gz_afk_task"][l11l1l11ll1l11ll11l1] = nil TheWorld["gz_afk_id"][l11l1l11ll1l11ll11l1] =(477 * 339 * 126+63 ~= 20374644) l1ll11ll1ll1l1ll1l11(ll1l11l1ll11l11ll11l)
+            TheWorld["gz_afk_task"][userid] = TheWorld:DoTaskInTime(5 * 60, function()
+                TheWorld["gz_afk_task"][userid] = nil 
+                TheWorld["gz_afk_id"][userid] =true
+                kill_team(team_manager)
             end
             )
         end
     end
-    ) self["inst"]:ListenForEvent("death", function(l1ll1ll1l1ll1l1ll1l1, l1l11l11ll11ll11l1ll)
-        self:OnDeath(l1l11l11ll11ll11l1ll)
+    ) self["inst"]:ListenForEvent("death", function(inst, afflicter)
+        self:OnDeath(afflicter)
     end
     )
 
 end
-, nil,{state_num = l11ll11ll1l1ll1ll1ll, can_vote = ll11l1ll1ll11ll1l1l1, p_team_num = l11ll11l11l11l1ll11l, kill_num = l11l11l1ll1l1l1l1l1l, death_num = l1l1l1l1ll1l11l11l11})
+, nil,{state_num = set_state_num, can_vote = set_can_vote, p_team_num = set_p_teamnum, kill_num = set_killnum, death_num = set_deathnum})
 
-function l1ll1l1ll1ll1l1ll1ll:InitVote()
+function gz_player:InitVote()
     self["can_vote"] = TUNING["GZ_CAN_VOTE"]
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:InitReconnect()
-    if self["survive_p"] ==(349-273-187 == - 107) then
-        self:OutTheGame(nil, nil,(string.sub("ll1l1ll1ll1ll11l1ll1", 8, 14) == "1ll1ll1"))
+function gz_player:InitReconnect()
+    if self["survive_p"] ==false then
+        self:OutTheGame(nil, nil,true)
         return
     end
-    if not (self["survive_p"] ==(6 * 463-46-143 == 2589) and self["p_team_num"] ~= 0) then
+    if not (self["survive_p"] ==false and self["p_team_num"] ~= 0) then
         return
     end
-    local l11l11l1ll1l1ll1ll11 = TheWorld["gz_team_managers"][self["p_team_num"]]
-    if not (l11l11l1ll1l1ll1ll11 and l11l11l1ll1l1ll1ll11["survive_m"]) then
-        self:OutTheGame(nil, nil,(269 * 327 * 252 == 22166676))
+    local team = TheWorld["gz_team_managers"][self["p_team_num"]]
+    if not (team and team["survive_m"]) then
+        self:OutTheGame(nil, nil,true)
         return
     end
-    l11l11l1ll1l1ll1ll11["players"][self["inst"]["GUID"]] = self["inst"]
-    self["inst"]["team_manager"] = l11l11l1ll1l1ll1ll11
+    if team then
+        team["players"][self["inst"]["GUID"]] = self["inst"]
+        self["inst"]["team_manager"] = team
+    end
     if self["dc_afk"] > 3 then
         if not self["inst"]:HasTag "playerghost" then
             self["inst"]:PushEvent "death"
         end
     end
-    local l11l1ll11ll1l11l1ll1 = self["inst"]["userid"]
-    if l11l1ll11ll1l11l1ll1 then
-        if TheWorld["gz_afk_task"][l11l1ll11ll1l11l1ll1] ~= nil then
-            TheWorld["gz_afk_task"][l11l1ll11ll1l11l1ll1]:Cancel()
-            TheWorld["gz_afk_task"][l11l1ll11ll1l11l1ll1] = nil
+    local userid = self["inst"]["userid"]
+    if userid then
+        if TheWorld["gz_afk_task"][userid] ~= nil then
+            TheWorld["gz_afk_task"][userid]:Cancel()
+            TheWorld["gz_afk_task"][userid] = nil
         end
-        if TheWorld["gz_afk_id"][l11l1ll11ll1l11l1ll1] then
+        if TheWorld["gz_afk_id"][userid] then
             self:OutTheGame(STRINGS["DC_FGC"]["AFK_timeout"])
         end
     end
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:InitGod()
-    local ll1l1ll1ll11l11l11l1 = self["inst"]["components"]["health"]
+function gz_player:InitGod()
+    local health = self["inst"]["components"]["health"]
     if not TUNING["GZ_ON_GOING"] then
         self["inst"]:AddTag "notarget"
         self["inst"]:AddTag "spawnprotection"
-        if ll1l1ll1ll11l11l11l1 ~= nil then
-            ll1l1ll1ll11l11l11l1:SetInvincible((152+75 * 295 * 302+432 == 6682334))
+        if health ~= nil then
+            health:SetInvincible((152+75 * 295 * 302+432 == 6682334))
         end
     else
         if self["p_team_num"] == 0 then
@@ -189,106 +208,106 @@ function l1ll1l1ll1ll1l1ll1ll:InitGod()
 
 end
 
-local function ll1l1ll11l1ll1l1l1l1(ll1l1l1ll11l11l11ll1)
-    local l11ll11l11ll1ll11l1l = ll1l1l1ll11l11l11ll1 and ll1l1l1ll11l11l11ll1["afflicter"]
-    if not l11ll11l11ll1ll11l1l then
+local function IsKiller(player)
+    local killer = player and player["afflicter"]
+    if not killer then
         return
     end
-    local ll1ll1ll11l1l11ll11l
-    if l11ll11l11ll1ll11l1l:HasTag "player" then
-        ll1ll1ll11l1l11ll11l = l11ll11l11ll1ll11l1l
-    elseif l11ll11l11ll1ll11l1l["components"]["follower"] then
-        local l1l11l1ll1l1l1l1ll11 = l11ll11l11ll1ll11l1l["components"]["follower"]["leader"]
-        if l1l11l1ll1l1l1l1ll11 and l1l11l1ll1l1l1l1ll11:HasTag "player" then
-            ll1ll1ll11l1l11ll11l = l1l11l1ll1l1l1l1ll11
+    local _killer
+    if killer:HasTag "player" then
+        _killer = killer
+    elseif killer["components"]["follower"] then
+        local follower_killer = killer["components"]["follower"]["leader"]
+        if follower_killer and follower_killer:HasTag "player" then
+            _killer = follower_killer
         end
     end
-    return ll1ll1ll11l1l11ll11l
+    return _killer
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:OnDeath(ll1l1l11ll1l11l1l1ll)
+function gz_player:OnDeath(player)
     if TUNING["GZ_GAME_OVER"] then
         return
     end
     if not TUNING["GZ_ON_GOING"] then
         return
     end
-    local ll11ll1l1ll1l1l1ll11 = ll1l1ll11l1ll1l1l1l1(ll1l1l11ll1l11l1l1ll)
-    if ll11ll1l1ll1l1l1ll11 == self["inst"] then
+    local _killer = IsKiller(player)
+    if _killer == self["inst"] then
         return
     end
-    local ll1ll1l11ll1ll1ll1l1
-    if ll11ll1l1ll1l1l1ll11 then
-        if not self["inst"]:DC_InSameTeam(ll11ll1l1ll1l1l1ll11) then
+    local prikol
+    if _killer then
+        if not self["inst"]:DC_InSameTeam(_killer) then
             self:DoDeltaDeath()
-            ll11ll1l1ll1l1l1ll11["components"]["gz_player"]:DoDeltaKill()
-            ll1ll1l11ll1ll1ll1l1 =(string.sub("l1l11ll11l1ll1l1l11l", 9, 14) == "1l1ll1")
+            _killer["components"]["gz_player"]:DoDeltaKill()
+            prikol =true
         end
-        ll11ll1l1ll1l1l1ll11:PushEvent("fgc_killer",{victim = self["inst"], teammate = self["inst"]:DC_InSameTeam(ll11ll1l1ll1l1l1ll11)})
+        _killer:PushEvent("fgc_killer",{victim = self["inst"], teammate = self["inst"]:DC_InSameTeam(_killer)})
     else
         self:DoDeltaDeath()
-        ll1ll1l11ll1ll1ll1l1 =(string.sub("l11l11l11ll1ll1l1l1l", 9, 12) == "1ll1")
+        prikol =true
     end
-    if ll1ll1l11ll1ll1ll1l1 then
-        self["inst"]:PushEvent("fgc_death",{killer = ll11ll1l1ll1l1l1ll11, teammate = self["inst"]:DC_InSameTeam(ll11ll1l1ll1l1l1ll11)})
+    if prikol then
+        self["inst"]:PushEvent("fgc_death",{killer = _killer, teammate = self["inst"]:DC_InSameTeam(_killer)})
     end
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:DoDeltaKill(l11l11ll1l11l11l11ll)
-    l11l11ll1l11l11l11ll = l11l11ll1l11l11l11ll or 1
-    self["kill_num"] = self["kill_num"] + l11l11ll1l11l11l11ll
+function gz_player:DoDeltaKill(player)
+    player = player or 1
+    self["kill_num"] = self["kill_num"] + player
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:DoDeltaDeath(l1ll11ll1ll1ll1ll1l1)
-    l1ll11ll1ll1ll1ll1l1 = l1ll11ll1ll1ll1ll1l1 or 1
-    self["death_num"] = self["death_num"] + l1ll11ll1ll1ll1ll1l1
+function gz_player:DoDeltaDeath(player)
+    player = player or 1
+    self["death_num"] = self["death_num"] + player
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:OutTheGame(ll1l11l1ll1ll1l1ll11, l1ll11l1ll1ll11l1l1l, l11ll11l1ll1l1ll11l1)
+function gz_player:OutTheGame(msg, idk, tr_fal)
     if self["inst"]:HasTag "gz_out_game" then
         return
     end
-    self["survive_p"] =(string.sub("ll11ll1l11l1ll11l1ll", 7, 11) == "ll11l")
+    self["survive_p"] =false
     self["inst"]:AddTag "gz_out_game"
-    if not l11ll11l1ll1l1ll11l1 then
-        TheNet:Announce(STRINGS["DC_FGC"]["WANJIA"] .. self["inst"]["name"] .. STRINGS["DC_FGC"]["CHUJUYUANYIN"] ..(ll1l11l1ll1ll1l1ll11 or STRINGS["DC_FGC"]["WEIZHI"]))
+    if not tr_fal then
+        TheNet:Announce(STRINGS["DC_FGC"]["WANJIA"] .. self["inst"]["name"] .. STRINGS["DC_FGC"]["CHUJUYUANYIN"] ..(msg or STRINGS["DC_FGC"]["WEIZHI"]))
     end
     if self["inst"]:IsValid() then
         if not self["inst"]:HasTag "playerghost" then
             self["inst"]:PushEvent "death"
         end
         self["inst"]:Hide()
-        self["inst"]["Light"]:Enable((string.sub("l1l1ll1l1l1l1l1l11ll", 7, 12) == "111l11"))
-        self["inst"]["DynamicShadow"]:Enable((string.sub("ll11l11ll1l1l11l1ll1", 6, 11) == "11ll11"))
-        self["inst"]["MiniMapEntity"]:SetEnabled((208 * 160-449 * 233 * 225 == - 23505541))
+        self["inst"]["Light"]:Enable(false)
+        self["inst"]["DynamicShadow"]:Enable(false)
+        self["inst"]["MiniMapEntity"]:SetEnabled(false)
         self["inst"]:AddTag "notarget"
         self["inst"]:AddTag "noplayerindicator"
         self["inst"]:AddTag "mime"
-        self["inst"]["SoundEmitter"]:SetMute((string.sub("l1l11ll11l1l1l1ll11l", 9, 13) == "1l1l1"))
-        self["inst"]["components"]["locomotor"]:SetTriggersCreep((string.sub("l11ll1l1ll1ll1ll11l1", 6, 14) == "1111ll111"))
+        self["inst"]["SoundEmitter"]:SetMute(true)
+        self["inst"]["components"]["locomotor"]:SetTriggersCreep(false)
     end
-    if l1ll11l1ll1ll11l1l1l then
+    if idk then
         return
     end
-    if l11ll11l1ll1l1ll11l1 then
+    if tr_fal then
         return
     end
     if self["p_team_num"] == 0 then
         return
     end
-    local l1l1l11ll11l1l1l1l1l = self["inst"]["team_manager"]
-    if not l1l1l11ll11l1l1l1l1l then
+    local team_manager = self["inst"]["team_manager"]
+    if not team_manager then
         return
     end
-    l1ll11ll1ll1l1ll1l11(l1l1l11ll11l1l1l1l1l)
+    kill_team(team_manager)
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:OnSave()
+function gz_player:OnSave()
     return {p_team_num = self["p_team_num"],
      survive_p = self["survive_p"], 
      dc_signal = self["dc_signal"], 
@@ -298,32 +317,32 @@ function l1ll1l1ll1ll1l1ll1ll:OnSave()
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:OnLoad(l1l1l11l1l1l11l1ll11)
-    if l1l1l11l1l1l11l1ll11 then
-        self["p_team_num"] = l1l1l11l1l1l11l1ll11["p_team_num"] or 0
-        self["survive_p"] = l1l1l11l1l1l11l1ll11["survive_p"]
-        self["dc_signal"] = l1l1l11l1l1l11l1ll11["dc_signal"]
-        self["dc_afk"] = l1l1l11l1l1l11l1ll11["dc_afk"] or 0
-        self["kill_num"] = l1l1l11l1l1l11l1ll11["kill_num"] or 0
-        self["death_num"] = l1l1l11l1l1l11l1ll11["death_num"] or 0
+function gz_player:OnLoad(data)
+    if data then
+        self["p_team_num"] = data["p_team_num"] or 0
+        self["survive_p"] = data["survive_p"]
+        self["dc_signal"] = data["dc_signal"]
+        self["dc_afk"] = data["dc_afk"] or 0
+        self["kill_num"] = data["kill_num"] or 0
+        self["death_num"] = data["death_num"] or 0
     end
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:SetState(l11ll11l1l1l1ll11l1l)
-    self["state_num"] = l11ll11l1l1l1ll11l1l
+function gz_player:SetState(state_num)
+    self["state_num"] = state_num
     gz_TryVoteStart()
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:IsReady()
-    return l1ll1l1l1ll1ll1l1ll1[self["state_num"]]["state"] == "ready"
+function gz_player:IsReady()
+    return states[self["state_num"]]["state"] == "ready"
 
 end
 
-function l1ll1l1ll1ll1l1ll1ll:IsWatch()
-    return l1ll1l1l1ll1ll1l1ll1[self["state_num"]]["state"] == "watch"
+function gz_player:IsWatch()
+    return states[self["state_num"]]["state"] == "watch"
 
 end
 
-return l1ll1l1ll1ll1l1ll1ll
+return gz_player

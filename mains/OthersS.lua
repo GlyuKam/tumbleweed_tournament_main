@@ -140,24 +140,6 @@ AddComponentPostInit("drownable", function(self)
     end
 end)
 
-local player_fns = require "prefabs/player_common_extensions"
-
-local GiveStartingItems = player_fns["GivePlayerStartingItems"]
-
-player_fns["GivePlayerStartingItems"] = function(player, ...)
-    GiveStartingItems(player, ...)
-    if player and player["components"]["inventory"] then
-        player["components"]["inventory"]:GiveItem(SpawnPrefab "hammer")
-        player["components"]["inventory"]:GiveItem(SpawnPrefab "reskin_tool")
-        player["components"]["inventory"]:GiveItem(SpawnPrefab "torch")
-        if TUNING["GZ_zhandoutaozhuang"] then
-            player["components"]["inventory"]:GiveItem(SpawnPrefab "wathgrithrhat")
-            player["components"]["inventory"]:GiveItem(SpawnPrefab "spear_wathgrithr")
-        end
-    end
-
-end
-
 local need_to_remove ={"cursed_monkey_token", "telestaff", "dustmothden", "scorched_skeleton", "skeleton", "skeleton_player"}
 
 for k, v in ipairs(need_to_remove) do
@@ -195,19 +177,19 @@ AddComponentPostInit("autoterraformer", function(self)
 end
 )
 
-local l1ll1l11ll1l1ll1ll1l = ACTIONS["BLINK"]["fn"]
+local blink = ACTIONS["BLINK"]["fn"]
 
-ACTIONS["BLINK"]["fn"] = function(l11ll1ll1ll1ll11ll11)
-    local l11ll1l1l1ll11ll1l11 = l11ll1ll1ll1ll11ll11:GetActionPoint()
-    if l11ll1l1l1ll11ll1l11 and l11ll1ll1ll1ll11ll11["doer"] and l11ll1ll1ll1ll11ll11["doer"]["team_manager"] then
-        local l1ll1l11l1l11ll1l1ll = l11ll1ll1ll1ll11ll11["doer"]["team_manager"]
-        local l1l11ll1l1l1ll1ll1ll, ll11l11l1l1l1l11l1ll, l1l11l11l11ll11ll1ll = l1ll1l11l1l11ll1l1ll["Transform"]:GetWorldPosition()
-        local ll11l1l1l11l11l11l11, l1l1l11l1l1ll11l1ll1, ll1l1l11ll11l11l1ll1 = l11ll1l1l1ll11ll1l11:Get()
-        if not TheWorld["Pathfinder"]:IsClear(l1l11ll1l1l1ll1ll1ll, 0, l1l11l11l11ll11ll1ll, ll11l1l1l11l11l11l11, 0, ll1l1l11ll11l11l1ll1,{ignorewalls =(273 * 292+488-342+192 == 80054), ignorecreep =(371+374 * 327-344 * 389 ~= - 11145), allowocean =(string.sub("l11l1l1l1ll11l1l1ll1", 9, 14) == "1l111l")}) then
+ACTIONS["BLINK"]["fn"] = function(act)
+    local point = act:GetActionPoint()
+    if point and act["doer"] and act["doer"]["team_manager"] then
+        local team_manager = act["doer"]["team_manager"]
+        local x, y, z = team_manager["Transform"]:GetWorldPosition()
+        local x1, y1, z1 = point:Get()
+        if not TheWorld["Pathfinder"]:IsClear(x, 0, z, x1, 0, z1,{ignorewalls =(273 * 292+488-342+192 == 80054), ignorecreep =(371+374 * 327-344 * 389 ~= - 11145), allowocean =(string.sub("l11l1l1l1ll11l1l1ll1", 9, 14) == "1l111l")}) then
             return (string.sub("l1ll11l1l11l1l1l1ll1", 7, 11) ~= "l1l11")
         end
     end
-    return l1ll1l11ll1l1ll1ll1l(l11ll1ll1ll1ll11ll11)
+    return blink(act)
 
 end
 

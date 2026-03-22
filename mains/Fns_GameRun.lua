@@ -159,8 +159,7 @@ local function groupteams(player, team)
     player["team_manager"] = center
     player["components"]["gz_player"]["survive_p"] =(string.sub("l1ll1l11ll1ll1l11l1l", 8, 13) ~= "11l111")
     if player["components"]["leader"] ~= nil then
-        for follower, idk in pairs(player["components"]["leader"]["followers"])
-        do
+        for follower, idk in pairs(player["components"]["leader"]["followers"]) do
             if not (follower["components"]["follower"] ~= nil and follower["components"]["follower"]["noleashing"]) then
                 if follower["Physics"] ~= nil then
                     follower["Physics"]:Teleport(x, y, z)
@@ -172,8 +171,25 @@ local function groupteams(player, team)
     end
     center["players"][player["GUID"]] = player
     center["survive_m"] =(178-349+253 ~= 86)
-    center["count_player"] = center["count_player"] + 1
+    center["count_player"] = (center["count_player"] or 0) + 1
 
+end
+
+function _G.c_nextteam(player,team)
+    if TUNING["GZ_ON_GOING"] then player.components.talker:Say("Игра уже началась, менять команду нельзя") return end
+    local center = TheWorld["gz_team_managers"][team]
+    if center == nil then return end
+    
+    if player._p_team_num:value()~=0 then
+        team_manager_to_remove = TheWorld["gz_team_managers"][player._p_team_num:value()]
+        team_manager_to_remove.count_player = team_manager_to_remove.count_player - 1
+        team_manager_to_remove["players"][player["GUID"]] = nil
+        if team_manager_to_remove.count_player == 0 then
+            team_manager_to_remove.count_player = nil
+        end
+    end
+    groupteams(player, team)
+    TUNING["GZ_HAS_GROUPED"] = true
 end
 
 function gz_GroupPlayers(l1ll1l11l1l11l1l1l1l)
@@ -190,8 +206,7 @@ function gz_GroupPlayers(l1ll1l11l1l11l1l1l1l)
         TUNING["GZ_PLAYERS_EACH_GROUP"] = l1ll1l11l1l11l1l1l1l
     end
     local new_table ={}
-    for _, player in ipairs(AllPlayers)
-    do
+    for _, player in ipairs(AllPlayers) do
         if not player:HasTag "playerghost" and not player["components"]["gz_player"]:IsWatch() then
             player["gz_random_num"] = math["random"]()
             table["insert"](new_table, player)
@@ -208,8 +223,7 @@ function gz_GroupPlayers(l1ll1l11l1l11l1l1l1l)
         return player["gz_random_num"] > other_player["gz_random_num"]
     end
     )
-    for num, team in pairs(TheWorld["gz_team_managers"])
-    do
+    for num, team in pairs(TheWorld["gz_team_managers"]) do
         team["players"] = nil 
         team["players"] ={}
         team["survive_m"] = nil 
@@ -303,24 +317,22 @@ AddPrefabPostInit("world", function(world)
 end
 )
 
-local function l1ll11ll1l1l11ll1ll1(ll1l1l1ll11ll1l1l1l1)
-    local ll1l1l11ll11l1l1l1ll = # ll1l1l1ll11ll1l1l1l1
-    for l1l1l11ll11l11ll11ll = ll1l1l11ll11l1l1l1ll, 2, - 1
-    do
-        local l1l11l1l1l11l1l1ll11 = math["random"](1, l1l1l11ll11l11ll11ll)
-        ll1l1l1ll11ll1l1l1l1[l1l1l11ll11l11ll11ll], ll1l1l1ll11ll1l1l1l1[l1l11l1l1l11l1l1ll11] = ll1l1l1ll11ll1l1l1l1[l1l11l1l1l11l1l1ll11], ll1l1l1ll11ll1l1l1l1[l1l1l11ll11l11ll11ll]
+local function RerollPlayersInTable(table)
+    local t_length = #table
+    for i = t_length, 2, - 1 do
+        local random = math["random"](1, i)
+        table[i], table[random] = table[random], table[i]
     end
 
 end
 
-local function l1ll1l1ll1l1l1l1ll1l(l1ll1ll1l11l11ll1ll1)
-    local l1ll11ll1ll1ll1l11l1 ={}
-    for ll1l1l1ll1l1ll1ll1ll = 1, l1ll1ll1l11l11ll1ll1
-    do
-        l1ll11ll1ll1ll1l11l1[ll1l1l1ll1l1ll1ll1ll] = ll1l1l1ll1l1ll1ll1ll
+local function ResetTable(table)
+    local new_table ={}
+    for i = 1, table do
+        new_table[i] = i
     end
-    l1ll11ll1l1l11ll1ll1(l1ll11ll1ll1ll1l11l1)
-    return l1ll11ll1ll1ll1l11l1
+    RerollPlayersInTable(new_table)
+    return new_table
 
 end
 
@@ -339,123 +351,128 @@ function gz_GroupPlayersWithTeam(players)
     else
         players = TUNING["GZ_PLAYERS_EACH_GROUP"]
     end
-    local ll11l1l11ll11l1l1l1l ={}
-    local ll11l11ll11l11ll1l11 ={}
-    local l11l1l11ll1l1l1l11ll = 0
-    local l1ll1l1ll1l1ll1l11l1 = require "lists/list_team"
-    local l1ll11l1l11l1l11l11l = l1ll1l1ll1l1ll1l11l1["member_to_leader"]
-    for l1l1l1l11ll1l11l11ll, ll11l1l1ll11l11l11ll in ipairs(AllPlayers)
-    do
-        if not ll11l1l1ll11l11l11ll:HasTag "playerghost" and not ll11l1l1ll11l11l11ll["components"]["gz_player"]:IsWatch() then
-            l11l1l11ll1l1l1l11ll = l11l1l11ll1l1l1l11ll + 1
-            local ll11l11l1l1ll1ll1l11 = l1ll11l1l11l1l11l11l[ll11l1l1ll11l11l11ll["userid"]]
-            if ll11l11l1l1ll1ll1l11 then
-                if not ll11l11ll11l11ll1l11[ll11l11l1l1ll1ll1l11] then
-                    ll11l11ll11l11ll1l11[ll11l11l1l1ll1ll1l11] ={}
+    local table1 ={}
+    local table2 ={}
+    local counter = 0
+    local team = require "lists/list_team"
+    local member_toleader = team["member_to_leader"]
+    for _, player in ipairs(AllPlayers) do
+        if not player:HasTag "playerghost" and not player["components"]["gz_player"]:IsWatch() then
+            counter = counter + 1
+            local userid = member_toleader[player["userid"]]
+            if userid then
+                if not table2[userid] then
+                    table2[userid] ={}
                 end
-                table["insert"](ll11l11ll11l11ll1l11[ll11l11l1l1ll1ll1l11], ll11l1l1ll11l11l11ll)
+                table["insert"](table2[userid], player)
             else
-                ll11l1l1ll11l11l11ll["gz_random_num"] = math["random"]()
-                table["insert"](ll11l1l11ll11l1l1l1l, ll11l1l1ll11l11l11ll)
+                player["gz_random_num"] = math["random"]()
+                table["insert"](table1, player)
             end
         end
     end
-    local l1ll11l11l1l11ll1ll1 =(TUNING["gz_Site"] == 8) and 8 or 6
-    if l11l1l11ll1l1l1l11ll > l1ll11l11l1l11ll1ll1 * players then
+    local gz_Site =(TUNING["gz_Site"] == 8) and 8 or 6
+    if counter > gz_Site * players then
         TheNet:Announce(STRINGS["DC_FGC"]["QINGGAIRENSHU"])
         return
     end
-    TUNING["GZ_HAS_GROUPED"] =(139+234-404 == - 31)
-    table["sort"](ll11l1l11ll11l1l1l1l, function(ll1l1l11l11l1l1l1ll1, l1l1ll1l11ll11ll1l11)
-        return ll1l1l11l11l1l1l1ll1["gz_random_num"] > l1l1ll1l11ll11ll1l11["gz_random_num"]
+    TUNING["GZ_HAS_GROUPED"] = true
+    table["sort"](table1, function(p1, p2)
+        return p1["gz_random_num"] > p2["gz_random_num"]
     end
     )
-    for l1ll11l11ll1l1l11l11, ll1l11ll1l11ll11ll1l in pairs(TheWorld["gz_team_managers"])
-    do
-        ll1l11ll1l11ll11ll1l["players"] = nil ll1l11ll1l11ll11ll1l["players"] ={}
-        ll1l11ll1l11ll11ll1l["survive_m"] = nil ll1l11ll1l11ll11ll1l["count_weed"] = 0
-        ll1l11ll1l11ll11ll1l["count_player"] = 0
+    for _, team_manager in pairs(TheWorld["gz_team_managers"]) do
+        team_manager["players"] = nil 
+        team_manager["players"] ={}
+        team_manager["survive_m"] = nil 
+        team_manager["count_weed"] = 0
+        team_manager["count_player"] = 0
     end
-    for l1ll1l1ll1l1l1ll1ll1, l11ll1l1ll1l1l11l1l1 in ipairs(AllPlayers)
-    do
-        l11ll1l1ll1l1l11l1l1["components"]["gz_player"]["p_team_num"] = 0
-        l11ll1l1ll1l1l11l1l1["team_manager"] = nil l11ll1l1ll1l1l11l1l1["components"]["gz_player"]["survive_p"] = nil
+    for _, player in ipairs(AllPlayers) do
+        player["components"]["gz_player"]["p_team_num"] = 0
+        player["team_manager"] = nil 
+        player["components"]["gz_player"]["survive_p"] = nil
     end
-    local ll1l1l11l11l1l11ll11 = l1ll1l1ll1l1l1l1ll1l(math["ceil"](l11l1l11ll1l1l1l11ll / players))
-    local l11l11l1l11l11l11l11 = 0
-    for l1l1ll11l1ll11l1l11l, ll1ll1ll1ll1ll1l1ll1 in pairs(ll11l11ll11l11ll1l11)
-    do
-        l11l11l1l11l11l11l11 = l11l11l1l11l11l11l11 + 1
-        local l1l1l1l1ll1ll1l1l11l = ll1l1l11l11l1l11ll11[l11l11l1l11l11l11l11]
-        local l1l11l1l11l1l1l1l1l1 = 0
-        for ll1l1l1l1l1ll11ll11l, l11l1l11l11l1l11ll1l in ipairs(ll1ll1ll1ll1ll1l1ll1)
-        do
-            l1l11l1l11l1l1l1l1l1 = l1l11l1l11l1l1l1l1l1 + 1
-            groupteams(l11l1l11l11l1l11ll1l, l1l1l1l1ll1ll1l1l11l)
+    local new_table = ResetTable(math["ceil"](counter / players))
+    local counter = 0
+    for _, table in pairs(table2) do
+        counter = counter + 1
+        local team = new_table[counter]
+        local count = 0
+        for _, player in ipairs(team) do
+            count = count + 1
+            groupteams(player, team)
         end
-        for l11ll1ll11ll1l1l1ll1 = # ll11l1l11ll11l1l1l1l, 1, - 1
-        do
-            if l1l11l1l11l1l1l1l1l1 < players then
-                l1l11l1l11l1l1l1l1l1 = l1l11l1l11l1l1l1l1l1 + 1
-                groupteams(table["remove"](ll11l1l11ll11l1l1l1l, l11ll1ll11ll1l1l1ll1), l1l1l1l1ll1ll1l1l11l)
+        for i = # table1, 1, - 1 do
+            if count < players then
+                count = count + 1
+                groupteams(team["remove"](table1, i), team)
             else
                 break
             end
         end
     end
-    local ll11ll11ll1l1l1l11l1 = # ll11l1l11ll11l1l1l1l
+    local ll11ll11ll1l1l1l11l1 = # table1
     for ll11ll1ll1l1l11l1l11 = 1, ll11ll11ll1l1l1l11l1, players
     do
-        l11l11l1l11l11l11l11 = l11l11l1l11l11l11l11 + 1
-        local ll11l1l1l1ll1l1l11ll = ll1l1l11l11l1l11ll11[l11l11l1l11l11l11l11]
+        counter = counter + 1
+        local ll11l1l1l1ll1l1l11ll = new_table[counter]
         for ll1l11l1l1ll11l1l11l = 0, players - 1
         do
             if ll11ll1ll1l1l11l1l11 + ll1l11l1l1ll11l1l11l <= ll11ll11ll1l1l1l11l1 then
-                groupteams(ll11l1l11ll11l1l1l1l[ll11ll1ll1l1l11l1l11 + ll1l11l1l1ll11l1l11l], ll11l1l1l1ll1l1l11ll)
+                groupteams(table1[ll11ll1ll1l1l11l1l11 + ll1l11l1l1ll11l1l11l], ll11l1l1l1ll1l1l11ll)
             end
         end
     end
-    if TUNING["gz_Site"] == 8 then
-        TUNING["dc_points_shrink"] = ll1ll1l11l1ll1l1l11l["eight"]
-        TUNING["dc_points_end"] = ll1ll11l11ll1ll1ll1l["eight"]
-        TUNING["dc_points_arena"] = l1l11l11l1l1l1ll1ll1["eight"]
-    else
-        if l11l11l1l11l11l11l11 > 4 then
-            TUNING["dc_points_shrink"] = ll1ll1l11l1ll1l1l11l["six"]
-            TUNING["dc_points_end"] = ll1ll11l11ll1ll1ll1l["six"]
-            TUNING["dc_points_arena"] = l1l11l11l1l1l1ll1ll1["six"]
-        else
-            TUNING["dc_points_shrink"] = ll1ll1l11l1ll1l1l11l["four"]
-            TUNING["dc_points_end"] = ll1ll11l11ll1ll1ll1l["four"]
-            TUNING["dc_points_arena"] = l1l11l11l1l1l1ll1ll1["four"]
-        end
-    end
+    -- if TUNING["gz_Site"] == 8 then
+    --     TUNING["dc_points_shrink"] = ll1ll1l11l1ll1l1l11l["eight"]
+    --     TUNING["dc_points_end"] = ll1ll11l11ll1ll1ll1l["eight"]
+    --     TUNING["dc_points_arena"] = l1l11l11l1l1l1ll1ll1["eight"]
+    -- else
+    --     if counter > 4 then
+    --         TUNING["dc_points_shrink"] = ll1ll1l11l1ll1l1l11l["six"]
+    --         TUNING["dc_points_end"] = ll1ll11l11ll1ll1ll1l["six"]
+    --         TUNING["dc_points_arena"] = l1l11l11l1l1l1ll1ll1["six"]
+    --     else
+    --         TUNING["dc_points_shrink"] = ll1ll1l11l1ll1l1l11l["four"]
+    --         TUNING["dc_points_end"] = ll1ll11l11ll1ll1ll1l["four"]
+    --         TUNING["dc_points_arena"] = l1l11l11l1l1l1ll1ll1["four"]
+    --     end
+    -- end
 
 end
 
 GLOBAL["gz_GroupPlayersWithTeam"] = gz_GroupPlayersWithTeam
 
 function gz_GiveAid()
-    for ll1l1l1l1l11l1l11ll1, ll1ll1l1ll11l1l11l11 in pairs(TheWorld["gz_team_managers"])
-    do
-        if ll1ll1l1ll11l1l11l11["players"] and not next(ll1ll1l1ll11l1l11l11["players"]) ~= nil then
-            local ll11l1l11l11ll11ll11 = ll1ll1l1ll11l1l11l11["count_player"]
-            local l11l11l1l11ll11ll1ll = TUNING["GZ_PLAYERS_EACH_GROUP"] - ll11l1l11l11ll11ll11
-            if l11l11l1l11ll11ll1ll > 0 and ll11l1l11l11ll11ll11 > 0 then
-                for ll11l11ll11l1ll11l11 = 1, l11l11l1l11ll11ll1ll, 1
-                do
-                    local l1ll11ll11ll11l11ll1, l1ll1l11ll1l11l1l11l, l11ll1ll1ll1ll11ll11 = ll1ll1l1ll11l1l11l11["Transform"]:GetWorldPosition()
-                    SpawnPrefab "amulet"["Transform"]:SetPosition(l1ll11ll11ll11l11ll1, l1ll1l11ll1l11l1l11l, l11ll1ll1ll1ll11ll11)
-                    SpawnPrefab "wathgrithrhat"["Transform"]:SetPosition(l1ll11ll11ll11l11ll1, l1ll1l11ll1l11l1l11l, l11ll1ll1ll1ll11ll11)
-                    SpawnPrefab "spear_wathgrithr"["Transform"]:SetPosition(l1ll11ll11ll11l11ll1, l1ll1l11ll1l11l1l11l, l11ll1ll1ll1ll11ll11)
-                end
-            end
-        end
-    end
-
+    return
+    -- for i, team_manager in pairs(TheWorld["gz_team_managers"]) do
+    --     if team_manager["players"] and not next(team_manager["players"]) ~= nil then
+    --         local count_player = team_manager["count_player"]
+    --         local gz_players_each_group = (TUNING["GZ_PLAYERS_EACH_GROUP"] or 1) - (count_player or 0)
+    --         if gz_players_each_group > 0 and count_player > 0 then
+    --             for i = 1, gz_players_each_group, 1 do
+    --                 local x, y, z = team_manager["Transform"]:GetWorldPosition()
+    --                 SpawnPrefab "amulet"["Transform"]:SetPosition(x, y, z)
+    --                 SpawnPrefab "wathgrithrhat"["Transform"]:SetPosition(x, y, z)
+    --                 SpawnPrefab "spear_wathgrithr"["Transform"]:SetPosition(x, y, z)
+    --             end
+    --         end
+    --     end
+    -- end
 end
 
 GLOBAL["gz_GiveAid"] = gz_GiveAid
+
+local character_items = {
+    wilson ={"wathgrithrhat"},
+    winona = {"winona_remote"},
+    wurt = {"trident"},
+    webber = {"spidereggsack","monstermeat","monstermeat","spider_whistle"},
+    warly = {"glasscutter","portablecookpot_item","portablespicer_item"},
+    wanda = {"pocketwatch_heal","pocketwatch_heal"},
+    wx78 = {"wx78_moduleremover","wx78_scanner_item","umbrella"},
+}
 
 function gz_MatchStart(l11ll1l1l1ll11ll1l11, l1ll1l11l1l11ll1l1ll)
     if TUNING["GZ_GAME_OVER"] then
@@ -470,7 +487,18 @@ function gz_MatchStart(l11ll1l1l1ll11ll1l11, l1ll1l11l1l11ll1l1ll)
         TheNet:Announce(STRINGS["DC_FGC"]["SHANGWEIFENZU"])
         return
     end
-    TUNING["GZ_ON_GOING"] =(string.sub("l1ll11ll11l11l1l1l1l", 9, 11) == "11l")
+    TUNING["GZ_ON_GOING"] =true
+    
+    if TUNING["gz_Site"] == 8 then
+        TUNING["dc_points_shrink"] = ll1ll1l11l1ll1l1l11l["eight"]
+        TUNING["dc_points_end"] = ll1ll11l11ll1ll1ll1l["eight"]
+        TUNING["dc_points_arena"] = l1l11l11l1l1l1ll1ll1["eight"]
+    else
+        TUNING["dc_points_shrink"] = ll1ll1l11l1ll1l1l11l["six"]
+        TUNING["dc_points_end"] = ll1ll11l11ll1ll1ll1l["six"]
+        TUNING["dc_points_arena"] = l1l11l11l1l1l1ll1ll1["six"]
+    end
+
     gz_SwitchVote((341+289 * 162+268 * 183 == 96213))
     local function l1l11ll1l1l1ll1ll1ll()
         for ll11l11l1l1l1l11l1ll, l1l11l11l11ll11ll1ll in ipairs(AllPlayers)
@@ -493,6 +521,22 @@ function gz_MatchStart(l11ll1l1l1ll11ll1l11, l1ll1l11l1l11ll1l1ll)
         gz_ClearSite()
         Sleep(1)
         gz_MarkShrink()
+        for _,player in pairs(AllPlayers) do
+            if player and player["components"]["inventory"] then
+                if character_items[player.prefab]~=nil then
+                    for _,item in pairs(character_items[player.prefab]) do
+                        player["components"]["inventory"]:GiveItem(SpawnPrefab(item))
+                    end
+                end
+                player["components"]["inventory"]:GiveItem(SpawnPrefab "hammer")
+                player["components"]["inventory"]:GiveItem(SpawnPrefab "reskin_tool")
+                player["components"]["inventory"]:GiveItem(SpawnPrefab "torch")
+                if TUNING["GZ_zhandoutaozhuang"] then
+                    player["components"]["inventory"]:GiveItem(SpawnPrefab "wathgrithrhat")
+                    player["components"]["inventory"]:GiveItem(SpawnPrefab "spear_wathgrithr")
+                end
+            end
+        end
     end
     TheWorld:StartThread(function()
         TheNet:Announce(STRINGS["DC_FGC"]["JIJIANGKAISHI"]) 
@@ -516,20 +560,25 @@ end
 
 GLOBAL["gz_MatchStart"] = gz_MatchStart
 
-local function ll1ll1l11ll1ll11l1l1(l1l1l11l1l1ll11l1ll1)
-    local ll1l1l11ll11l11l1ll1, l11l1l1l1l1l1l1l11l1, ll1l11l11l1ll1ll1l11 = l1l1l11l1l1ll11l1ll1["Transform"]:GetWorldPosition()
-    local ll1ll11l11ll1ll1l11l = SpawnPrefab "tumbleweed"
-    ll1ll11l11ll1ll1l11l["Transform"]:SetPosition(ll1l1l11ll11l11l1ll1, l11l1l1l1l1l1l1l11l1, ll1l11l11l1ll1ll1l11)
-    ll1ll11l11ll1ll1l11l["manager"] = l1l1l11l1l1ll11l1ll1
-    ll1ll11l11ll1ll1l11l:ListenForEvent("detachchild", function()
-        l1l1l11l1l1ll11l1ll1["count_weed"] = l1l1l11l1l1ll11l1ll1["count_weed"] - 1 if not ll1ll11l11ll1ll1l11l:IsOnValidGround() and not ll1ll11l11ll1ll1l11l["gz_onpickup"] then
-            ll1ll1l11ll1ll11l1l1(l1l1l11l1l1ll11l1ll1)
+local function SpawnTumbleweed(team_manager)
+    local x, y, z = team_manager["Transform"]:GetWorldPosition()
+    local tumbleweed = SpawnPrefab "tumbleweed"
+    tumbleweed["Transform"]:SetPosition(x, y, z)
+    tumbleweed["manager"] = team_manager
+    tumbleweed:ListenForEvent("detachchild", function()
+        team_manager["count_weed"] = team_manager["count_weed"] - 1 
+        if not tumbleweed:IsOnValidGround() and not tumbleweed["gz_onpickup"] then
+            SpawnTumbleweed(team_manager)
         end
+    end) 
+    
+    if team_manager.count_weed ~= nil then
+        team_manager["count_weed"] = team_manager["count_weed"] + 1
+    else
+        team_manager.count_weed = 1
     end
-    )
-    l1l1l11l1l1ll11l1ll1["count_weed"] = l1l1l11l1l1ll11l1ll1["count_weed"] + 1
-    if l1l1l11l1l1ll11l1ll1["count_weed"] > TUNING["GZ_COUNT_WEED_MAX"] then
-        l1l1l11l1l1ll11l1ll1:TeamOut "风滚草超量"
+    if team_manager["count_weed"] > TUNING["GZ_COUNT_WEED_MAX"] then
+        team_manager:TeamOut "风滚草超量"
     end
 
 end
@@ -544,7 +593,7 @@ function gz_Spawn(ll1l11l11l11l1l1l11l)
         if l1l1l1l11ll1l11ll1l1["survive_m"] and l1l1l1l11ll1l11ll1l1:IsValid() then
             for ll1ll11ll1l1l1l1l1ll = 1, ll1l11l11l11l1l1l11l, 1
             do
-                ll1ll1l11ll1ll11l1l1(l1l1l1l11ll1l11ll1l1)
+                SpawnTumbleweed(l1l1l1l11ll1l11ll1l1)
             end
         end
     end

@@ -7,7 +7,7 @@ end
 
 name = "Переглютишки"
 author = "ГлюК (с дешифровкой Кенга)"
-version = "1.03.54"
+version = "1.03.55"
 
 local l1ll1ll1ll1l11l11l11
 

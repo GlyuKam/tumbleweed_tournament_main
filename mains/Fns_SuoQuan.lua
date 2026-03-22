@@ -185,34 +185,34 @@ end
 
 GLOBAL["DC_Clean"] = DC_Clean
 
-local radius = 8
+-- local radius = 8
 
-local NoDocks = function(pos)
-    local x, y, z = pos:Get()
-    local new_tile = TheWorld["Map"]:GetTileAtPoint(x, y, z)
-    return new_tile ~= WORLD_TILES["MONKEY_DOCK"]
+-- local NoDocks = function(pos)
+--     local x, y, z = pos:Get()
+--     local new_tile = TheWorld["Map"]:GetTileAtPoint(x, y, z)
+--     return new_tile ~= WORLD_TILES["MONKEY_DOCK"]
 
-end
+-- end
 
-local function MoveTileManager()
-    for _, team_manager in pairs(TheWorld["gz_team_managers"]) do
-        if team_manager["survive_m"] then
-            local _x, _y, _z = team_manager["Transform"]:GetWorldPosition()
-            local _point = Point(_x, _y, _z)
-            for i = 0, 16, 2 do
-                local angle = math["random"]() * 2 * PI
-                local iterasiya = i
-                local offset = FindWalkableOffset(_point, angle, iterasiya, radius, false, true, NoDocks, false, false)
-                if offset then
-                    local x, y, z = TheWorld["Map"]:GetTileCenterPoint(_x + offset["x"], _y + offset["y"], _z + offset["z"])
-                    team_manager["Transform"]:SetPosition(x, y, z)
-                    break
-                end
-            end
-        end
-    end
+-- local function MoveTileManager()
+--     for _, team_manager in pairs(TheWorld["gz_team_managers"]) do
+--         if team_manager["survive_m"] then
+--             local _x, _y, _z = team_manager["Transform"]:GetWorldPosition()
+--             local _point = Point(_x, _y, _z)
+--             for i = 0, 16, 2 do
+--                 local angle = math["random"]() * 2 * PI
+--                 local iterasiya = i
+--                 local offset = FindWalkableOffset(_point, angle, iterasiya, radius, false, true, NoDocks, false, false)
+--                 if offset then
+--                     local x, y, z = TheWorld["Map"]:GetTileCenterPoint(_x + offset["x"], _y + offset["y"], _z + offset["z"])
+--                     team_manager["Transform"]:SetPosition(x, y, z)
+--                     break
+--                 end
+--             end
+--         end
+--     end
 
-end
+-- end
 
 local function ll1l11l1ll1ll1l1l11l()
     local ll1ll1ll1ll1ll1l1ll1 = math["max"](8, TUNING["GZ_AUTO_SPAWN_PERIOD"] - TUNING["GZ_AUTO_SPAWN_CUT"])
@@ -264,7 +264,7 @@ local function watchworldstatement(world)
         Sleep(5) 
         ll1l11l1ll1ll1l1l11l() 
         gz_MarkShrink() 
-        MoveTileManager()
+        -- MoveTileManager()
     end
     )
     world:DoTaskInTime(10, DC_Clean)
